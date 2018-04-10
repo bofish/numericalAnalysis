@@ -81,12 +81,11 @@ def polynomial_newton(x, f):
         [1]
     ])
     for j in range(M):
-        single_item = np.poly1d(f[j])
+        single_item = 1
         for k in range(j):
-            if k == j:
-                continue
+
             fac = x[j] - x[k]
-            single_item *= np.poly1d([1.0, -x[k]])/fac
+            single_item *= fac
         poly += single_item
     
     return poly
