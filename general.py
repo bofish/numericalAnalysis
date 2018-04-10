@@ -2,6 +2,15 @@ import numpy as np
 from numpy.linalg import lstsq
 from math import pi, cos
 import matplotlib.pyplot as plt
+from functools import reduce
+
+def prod(iterable):
+    '''
+    https://stackoverflow.com/questions/595374/whats-the-python-function-like-sum-but-for-multiplication-product
+    >>> prod(range(1, 5))
+    24
+    '''
+    return reduce(operator.mul, iterable, 1)
 
 def origin_fun(a, b):
     x = np.linspace(a, b, 100)
@@ -52,6 +61,37 @@ def polynomial_vandermode(x, f, x_sub):
     f_hat = coeff.item(0)*np.ones(len(x_sub)) + coeff.item(1)*x_sub + coeff.item(2)*x_sub**2 + coeff.item(3)*x_sub**3 + coeff.item(4)*x_sub**4 + coeff.item(5)*x_sub**5 + coeff.item(6)*x_sub**6 + coeff.item(7)*x_sub**7 + coeff.item(8)*x_sub**8 + coeff.item(9)*x_sub**9
     return f_hat
 
+def polynomial_lagrange(x, f):
+    M = len(x)
+    poly = np.poly1d(0.0)
+    for j in range(M):
+        single_item = np.poly1d(f[j])
+        for k in range(M):
+            if k == j:
+                continue
+            fac = x[j] - x[k]
+            single_item *= np.poly1d([1.0, -x[k]])/fac
+        poly += single_item
+    
+    return poly
+
+def polynomial_newton(x, f):
+    M = len(x)
+    correspond_mat = np.matrix([
+        [1]
+    ])
+    for j in range(M):
+        single_item = np.poly1d(f[j])
+        for k in range(j):
+            if k == j:
+                continue
+            fac = x[j] - x[k]
+            single_item *= np.poly1d([1.0, -x[k]])/fac
+        poly += single_item
+    
+    return poly
+
+
 if __name__ == '__main__':
 
     N = 10
@@ -74,5 +114,9 @@ if __name__ == '__main__':
     x_sub = np.linspace(-1,1,100)
     f_val = polynomial_vandermode(x_cp, f_cp, x_sub)
 
-    plt.plot(x_o, f_o, 'k', x_cp, f_cp, 'or', x_sub, f_val, 'b')
+    # plt.plot(x_o, f_o, 'k', x_cp, f_cp, 'or', x_sub, f_val, 'b')
+    # plt.show()
+
+    lpoly = polynomial_lagrange(x_es, f_es)
+    plt.plot(x_o, f_o, 'k', x_es, f_es, 'or', x_sub, lpoly(x_sub), 'b')
     plt.show()
