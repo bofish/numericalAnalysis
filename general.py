@@ -5,6 +5,11 @@ from math import pi, cos
 import matplotlib.pyplot as plt
 from functools import reduce
 
+'''
+TODO:
+1. Re-written vandermode method 
+'''
+
 def prod(iterable):
     '''
     https://stackoverflow.com/questions/595374/whats-the-python-function-like-sum-but-for-multiplication-product
@@ -13,23 +18,19 @@ def prod(iterable):
     '''
     return reduce(lambda x,y: x*y, iterable, 1)
 
-def origin_fun(a, b):
-    x = np.linspace(a, b, 100)
-    f = np.cos(10*x**2)*np.exp(-x)
-
-    return x, f
-
 def evenly_space_pt(a,b,N):
     x = np.linspace(a, b, N)
     f = np.cos(10*x**2)*np.exp(-x)
-
     return x, f
 
 def chebyshev_pt(a, b, N):
     x = np.array([(a+b)/2 - (b-a)/2*cos(k*pi) for k in np.linspace(0,1,N)])
     f = np.cos(10*x**2)*np.exp(-x)
-
     return x, f
+
+def origin_fun(x, a, b):
+    f = np.cos(10*x**2)*np.exp(-x)
+    return f
 
 def polynomial_vandermode(x, f, x_sub):
     assert len(x)==10, 'only support N=10'
@@ -73,7 +74,6 @@ def polynomial_lagrange(x, f):
             fac = x[j] - x[k]
             single_item *= np.poly1d([1.0, -x[k]])/fac
         poly += single_item
-    
     return poly
 
 def polynomial_newton(x, f):
@@ -119,7 +119,6 @@ def nature_spline_coeff(x, f):
     for i in range(res[2]):
         ddF.append(res[0].item(i))
     ddF.append(0)
-
     return ddF, delta, delta_f
 
 def cubic_spline(x, f, sub_xs):
@@ -133,40 +132,11 @@ def cubic_spline(x, f, sub_xs):
                 + ((sub_x - x[j])**3/(6*delta[j]) - delta[j]*(sub_x - x[j])/6)*ddF[j+1] + delta_f[j]*(sub_x - x[j]) + f[j]
                 f_vals.append(f_val)
                 break
-            
     return f_vals
+
+def cal_error(f, f_hat):
+    return np.sqrt((f-f_hat)**2)
 
 if __name__ == '__main__':
 
-    N = 10
-    a = -1
-    b = 1
-
-    print('-Evenly spaced points-')
-    x_o, f_o = origin_fun(a,b)
-
-    print('-Evenly spaced points-')
-    x_es, f_es = evenly_space_pt(a, b, N)
-
-    # print('\n'.join('{0:2d} & {1:4.3f} & {2:5.4f}  \\\\'.format(j+1, x[j], f[j]) for j in range(0,N)))
-
-    print('-Chebyshev points-')
-
-    x_cp, f_cp = chebyshev_pt(a, b, N)
-
-    # print('\n'.join('{0:2d} & {1:4.3f} & {2:5.4f}  \\\\'.format(j+1, x[j], f[j]) for j in range(0,N)))
-    x_sub = np.linspace(-1,1,100)
-    # f_van = polynomial_vandermode(x_cp, f_cp, x_sub)
-    # plt.plot(x_o, f_o, 'k', x_cp, f_cp, 'or', x_sub, f_val, 'b')
-    # plt.show()
-
-    lpoly = polynomial_lagrange(x_es, f_es)
-    plt.plot(x_o, f_o, 'k', x_es, f_es, 'or', x_sub, lpoly(x_sub), 'b')
-
-    npoly = polynomial_newton(x_es, f_es)
-    plt.plot(x_o, f_o, 'k', x_es, f_es, 'or', x_sub, npoly(x_sub), '--r')
-
-    f_spl = cubic_spline(x_es, f_es, x_sub)
-    plt.plot(x_o, f_o, 'k', x_es, f_es, 'or', x_sub, f_spl, '--r')
-
-    plt.show()
+   # TEST AREA
