@@ -136,7 +136,3 @@ def cubic_spline(x, f, sub_xs):
 
 def cal_error(f, f_hat):
     return np.sqrt((f-f_hat)**2)
-
-if __name__ == '__main__':
-
-   # TEST AREA

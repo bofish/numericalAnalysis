@@ -1,4 +1,4 @@
-from general import *
+from numerical.interpolation import *
 
 #------ Parameter ------#
 N = 10
