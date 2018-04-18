@@ -142,12 +142,25 @@ def trapezoidal_integ(x, f, integ_origin=None):
     return f_integ, error
 
 def simpson13_integ(x, f, integ_origin=None):
+    '''
+    Limitation:
+    1. `N` must be odd number
+    2. `N` must be larger than or eqaul to 5
+    '''
     M = len(x)
     h = np.sqrt(x[-1] - x[0])**2/(M-1)
     mid = [2*f[2*k+1] + f[2*k+2] for k in range(int((N-5)/2))]
     f_integ = (f[0] + 4*f[-2] + f[-1] + 2*sum(mid))*h/3
     error = cal_error(integ_origin, f_integ) if integ_origin is not None else ['Without derivative of f(x) inputed']
     return f_integ, error
+
+def gauss_integ(x, f, integ_origin=None):
+    M = len(x)
+    
+    
+    error = cal_error(integ_origin, f_integ) if integ_origin is not None else ['Without derivative of f(x) inputed']
+    return f_integ, error
+
     
 if __name__ == '__main__':
     # Parameter 
