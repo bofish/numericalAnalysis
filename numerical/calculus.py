@@ -134,54 +134,50 @@ def central_diff(x, f, k, m, diff_origin=None):
     error = cal_error(diff_origin[side_len: M - side_len], f_diff) if diff_origin is not None else ['Without derivative of f(x) inputed']
     return x_paired, f_diff, error
 
-def trapezoidal_integ(x, f):
+def trapezoidal_integ(x, f, integ_origin=None):
     M = len(x)
     h = np.sqrt(x[-1] - x[0])**2/(M-1)
-    f_integ = ((f[0] + f[-1])/2 + sum(x[1:-2]))*h
-    return f_integ
+    f_integ = ((f[0] + f[-1])/2 + sum(f[1:-2]))*h
+    error = cal_error(integ_origin, f_integ) if integ_origin is not None else ['Without derivative of f(x) inputed']
+    return f_integ, error
+
+def simpson13_integ(x, f, integ_origin=None):
+    M = len(x)
+    h = np.sqrt(x[-1] - x[0])**2/(M-1)
+    mid = [2*f[2*k+1] + f[2*k+2] for k in range(int((N-5)/2))]
+    f_integ = (f[0] + 4*f[-2] + f[-1] + 2*sum(mid))*h/3
+    error = cal_error(integ_origin, f_integ) if integ_origin is not None else ['Without derivative of f(x) inputed']
+    return f_integ, error
     
 if __name__ == '__main__':
     # Parameter 
-    a = 6
-    b = 10
-    N = 100
-    x = np.linspace(a,b,N)
-    f = 2*np.sin(x) - np.exp(x)/4 - 1
+    a = -1
+    b = 1
+    # N = 100001
+    # x = np.linspace(a,b,N)
+    # f = 2*np.sin(x) - np.exp(x)/4 - 1
 
-    # Analytical solution
-    df_origin = 2*np.cos(x) - np.exp(x)/4
+    # # Analytical solution
+    # sf_origin = -2*np.cos(b) - np.exp(b)/4 - b - (-2*np.cos(a) - np.exp(a)/4 - a)
 
     # Numerical solution
-    k = 1
-    m = 2
-    x_forward, df_forward, error_forward = forward_diff(x, f, k, m, df_origin)
-    x_backward, df_backward, error_backward = backward_diff(x, f, k, m, df_origin)
-    x_central, df_central, error_central = central_diff(x, f, k, m, df_origin)
-
-    # Differentiation Result
+    err_simpson = []
+    err_trapezoidal = []
+    for N in range(201,5001,2):
+        x = np.linspace(a,b,N)
+        f = 2*np.sin(x) - np.exp(x)/4 - 1
+        sf_origin = -2*np.cos(b) - np.exp(b)/4 - b - (-2*np.cos(a) - np.exp(a)/4 - a)
+        sf_trapezoidal, error_trapezoidal = trapezoidal_integ(x, f, sf_origin)
+        sf_simpson, error_simpson = simpson13_integ(x, f, sf_origin)
+        err_simpson.append(error_simpson)
+        err_trapezoidal.append(error_trapezoidal)
+    # print(sf_origin, sf_trapezoidal, error_trapezoidal)
+    # print(sf_origin, sf_simpson, error_simpson) 
     plt.figure()
-    plt.plot(x, df_origin, '-k')
-    plt.plot(x_forward, df_forward, ':r')
-    plt.plot(x_backward, df_backward, '-.g')
-    plt.plot(x_central, df_central, '--b')
-    # plt.plot(x[[0,-1]], df_origin[[0,-1]], 'ok')
-    # plt.plot(x_forward[[0,-1]], df_forward[[0,-1]], 'or')
-    # plt.plot(x_backward[[0,-1]], df_backward[[0,-1]], 'og')
-    # plt.plot(x_central[[0,-1]], df_central[[0,-1]], 'ob')
-    plt.legend(['Origin', 'Forward', 'Backward', 'Central'])
-    plt.title('Differentiation Result')
-    plt.xlabel('x')
-    plt.ylabel('Frist derivative of f(x)')
-
-    # Error Result
-    plt.figure()
-    plt.plot(x_forward, error_forward, ':r')
-    plt.plot(x_backward, error_backward, '-.g')
-    plt.plot(x_central, error_central, '--b')
-    plt.legend(['Forward', 'Backward', 'Central'])
-    plt.title('Error Result')
-    plt.xlabel('x')
+    plt.plot(err_simpson, '-r')
+    plt.plot(err_trapezoidal, '-.b')
+    plt.legend(['Simson 1/3', 'Trapezoidal'])
+    plt.title('Compare Error between Simpson 1/3 and Trapezoidal')
+    plt.xlabel('N')
     plt.ylabel('Error')
-
     plt.show()
-    
