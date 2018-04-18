@@ -1,4 +1,6 @@
 import numpy as np
+import numpy.matlib
+from numpy.linalg import lstsq 
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -155,9 +157,18 @@ def simpson13_integ(x, f, integ_origin=None):
     return f_integ, error
 
 def gauss_integ(x, f, integ_origin=None):
+    '''
+    Limitation:
+    1. w(x) = 1
+    '''
     M = len(x)
-    
-    
+    vandermonder_mat = np.matlib.ones((M,M))
+    B = np.matlib.zeros((M,1))
+    for j in range(M):
+        vandermonder_mat[j][:] = [x[i]**j for i in range(M)]
+        B[j] = (x[-1]**(j+1) - x[0]**(j+1))/(j+1)
+    W = lstsq(vandermonder_mat, B, rcond=-1)[0]
+    f_integ = sum(f[j]*W.item(j) for j in range(M))
     error = cal_error(integ_origin, f_integ) if integ_origin is not None else ['Without derivative of f(x) inputed']
     return f_integ, error
 
@@ -166,31 +177,36 @@ if __name__ == '__main__':
     # Parameter 
     a = -1
     b = 1
-    # N = 100001
-    # x = np.linspace(a,b,N)
-    # f = 2*np.sin(x) - np.exp(x)/4 - 1
+    N = 100
+    x = np.linspace(a,b,N)
+    f = 2*np.sin(x) - np.exp(x)/4 - 1
 
     # # Analytical solution
-    # sf_origin = -2*np.cos(b) - np.exp(b)/4 - b - (-2*np.cos(a) - np.exp(a)/4 - a)
+    sf_origin = -2*np.cos(b) - np.exp(b)/4 - b - (-2*np.cos(a) - np.exp(a)/4 - a)
 
     # Numerical solution
     err_simpson = []
     err_trapezoidal = []
-    for N in range(201,5001,2):
+    err_gauss = []
+    for N in range(101,301,2):
         x = np.linspace(a,b,N)
         f = 2*np.sin(x) - np.exp(x)/4 - 1
         sf_origin = -2*np.cos(b) - np.exp(b)/4 - b - (-2*np.cos(a) - np.exp(a)/4 - a)
         sf_trapezoidal, error_trapezoidal = trapezoidal_integ(x, f, sf_origin)
         sf_simpson, error_simpson = simpson13_integ(x, f, sf_origin)
-        err_simpson.append(error_simpson)
+        sf_gauss, error_gauss = gauss_integ(x, f, sf_origin)
         err_trapezoidal.append(error_trapezoidal)
+        err_simpson.append(error_simpson)
+        err_gauss.append(error_gauss)
     # print(sf_origin, sf_trapezoidal, error_trapezoidal)
     # print(sf_origin, sf_simpson, error_simpson) 
+    # print(sf_origin, sf_gauss, error_gauss)
     plt.figure()
     plt.plot(err_simpson, '-r')
-    plt.plot(err_trapezoidal, '-.b')
-    plt.legend(['Simson 1/3', 'Trapezoidal'])
-    plt.title('Compare Error between Simpson 1/3 and Trapezoidal')
+    plt.plot(err_trapezoidal, '-.g')
+    plt.plot(err_gauss, '-.b')
+    plt.legend(['Simson 1/3', 'Trapezoidal', 'Gauss'])
+    plt.title('Compare Error between Simpson 1/3, Trapezoidal and Gauss')
     plt.xlabel('N')
     plt.ylabel('Error')
     plt.show()
