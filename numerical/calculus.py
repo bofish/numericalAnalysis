@@ -8,6 +8,13 @@ def make_coeff_table_df(km_array, p_array, diff_coeff):
     coeff_df = pd.DataFrame(diff_coeff, columns=p_array, index=index)
     coeff_df.columns.name = 'p'
     return coeff_df
+def count_sample_number(km_array, diff_coeff):
+    sample_number = np.count_nonzero(diff_coeff, axis=1)
+    tuples = list(zip(*km_array))
+    index = pd.MultiIndex.from_tuples(tuples, names=['k', 'm'])
+    sample_number_s = pd.Series(sample_number, index=index)
+
+    return sample_number_s
 
 def forward_diff(x, f, k, m):
     '''
@@ -30,16 +37,18 @@ def forward_diff(x, f, k, m):
         [3, -14, 26, -24, 11, -2],
     ])
     coeff_df = make_coeff_table_df(km_array, p_array, forward_diff_coeff)
-
+    sample_number = count_sample_number(km_array, forward_diff_coeff)
+    
     M = len(x)
     f_diff = []
     h = np.sqrt(x[-1] - x[1])**2/M
-    for j in range(M-1):
 
-        single_pt = [coeff_df.loc[(k,m),p]*f[j+p] for p in range(6)]
+    for j in range(M-sample_number.loc[(k,m)]+1):
+        # single_pt = [coeff_df.loc[(k,m),p]*f[j+p] for p in range(6) if p<=M-j-1]
+        single_pt = [coeff_df.loc[(k,m),p]*f[j+p] for p in range(sample_number.loc[(k,m)])]
         dnf_j = sum(single_pt)/h**k
         f_diff.append(dnf_j)
-
+    print(len(f_diff))
     return f_diff
 
 def backward_diff(x, f, k):
@@ -92,9 +101,14 @@ def central_diff(x, f, k):
     return coeff_df
 
 if __name__ == '__main__':
-    x = np.linspace(0,3,100)
+    x = np.linspace(1,2,100)
     f = 2*np.sin(x) - np.exp(x)/4 - 1
     df = 2*np.cos(x) - np.exp(x)/4
-    df_forward = forward_diff(x, f, 1, 1)
-    plt.plot(x,df, x, df_forward)
-    plt.show()
+    df_forward = forward_diff(x, f, 1, 2)
+    print(df, df_forward)
+    # plt.plot(x,df, x, df_forward)
+    # plt.show()
+    # M = len(x)
+    # for j in range(M):
+    #     a = [x[j+p] for p in range(6) if p<=M-j-1]
+    #     print(a)
