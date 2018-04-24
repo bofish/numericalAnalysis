@@ -1,3 +1,4 @@
+from math import pi, sqrt, inf
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -61,40 +62,160 @@ TODO:
 # plt.show()
 
 # Follow the tutorial
-import numpy as np
-def DFT_slow(x):
+
+# def DFT_slow(x):
+#     """Compute the discrete Fourier Transform of the 1D array x"""
+#     x = np.asarray(x, dtype=float)
+#     N = x.shape[0]
+#     n = np.arange(N)
+#     k = n.reshape((N, 1))
+#     M = np.exp(-2j * np.pi * k * n / N)
+#     # print(M)
+#     # print(k * n)
+#     return np.dot(M, x)
+# # x = np.random.random(1024)
+# # x = np.arange(10)
+# # np.allclose(DFT_slow(x), np.fft.fft(x))
+# # DFT_slow(x)
+# # a = [1.0 + 2.0j, 1.0 + 2.0j, ]
+# # b = [2.0, 4.0]
+# # print(np.dot(a, b))
+
+# def FFT(x):
+#     """A recursive implementation of the 1D Cooley-Tukey FFT"""
+#     x = np.asarray(x, dtype=float)
+#     N = x.shape[0]
+#     print(N)
+#     if N % 2 > 0:
+#         raise ValueError("size of x must be a power of 2")
+#     elif N <= 32:  # this cutoff should be optimized
+#         return DFT_slow(x)
+#     else:
+#         X_even = FFT(x[::2])
+#         X_odd = FFT(x[1::2])
+#         factor = np.exp(-2j * np.pi * np.arange(N) / N)
+#         return np.concatenate([X_even + factor[:(N / 2)] * X_odd,
+#                                X_even + factor[(N / 2):] * X_odd])
+# x = np.random.random(1024)
+# # print(np.fft.fft(x))
+# print(np.allclose(FFT(x), np.fft.fft(x)))
+
+# IDFT
+
+def DFT(x):
     """Compute the discrete Fourier Transform of the 1D array x"""
     x = np.asarray(x, dtype=float)
     N = x.shape[0]
     n = np.arange(N)
     k = n.reshape((N, 1))
-    M = np.exp(-2j * np.pi * k * n / N)
-    # print(M)
-    # print(k * n)
+    M = np.exp(-2j * np.pi * k * n / N)    
     return np.dot(M, x)
-# x = np.random.random(1024)
-# x = np.arange(10)
-# np.allclose(DFT_slow(x), np.fft.fft(x))
-# DFT_slow(x)
-# a = [1.0 + 2.0j, 1.0 + 2.0j, ]
-# b = [2.0, 4.0]
-# print(np.dot(a, b))
+
+def IDFT(X):
+    """Compute the discrete Fourier Transform of the 1D array x"""
+    X = np.asarray(X)
+    N = X.shape[0]
+    k = np.arange(N)
+    n = k.reshape((N, 1))
+    M = np.exp(2j * np.pi * k * n / N)
+    return np.dot(M, X)/N
 
 def FFT(x):
     """A recursive implementation of the 1D Cooley-Tukey FFT"""
     x = np.asarray(x, dtype=float)
     N = x.shape[0]
-    print(N)
+    
     if N % 2 > 0:
         raise ValueError("size of x must be a power of 2")
     elif N <= 32:  # this cutoff should be optimized
-        return DFT_slow(x)
+        return DFT(x)
     else:
         X_even = FFT(x[::2])
         X_odd = FFT(x[1::2])
         factor = np.exp(-2j * np.pi * np.arange(N) / N)
-        return np.concatenate([X_even + factor[:(N / 2)] * X_odd,
-                               X_even + factor[(N / 2):] * X_odd])
-x = np.random.random(1024)
-# print(np.fft.fft(x))
-print(np.allclose(FFT(x), np.fft.fft(x)))
+        return np.concatenate([X_even + factor[:(N // 2)] * X_odd,
+                               X_even + factor[(N // 2):] * X_odd])
+
+def IFFT(X):
+    """A recursive implementation of the 1D Cooley-Tukey FFT"""
+    X = np.asarray(X)
+    N = X.shape[0]
+    
+    if N % 2 > 0:
+        raise ValueError("size of x must be a power of 2")
+    elif N <= 32:  # this cutoff should be optimized
+        return IDFT(X)
+    else:
+        x_even = IFFT(X[::2])*(N/2)
+        x_odd = IFFT(X[1::2])*(N/2)
+        factor = np.exp(2j * np.pi * np.arange(N) / N)
+        return np.concatenate([x_even + factor[:(N // 2)] * x_odd,x_even + factor[(N // 2):] * x_odd])/N
+
+def FFTshift(x):
+    y = np.asarray(x)
+    n = y.shape[0]
+    p2 = (n+1)//2
+    shiftlist = np.concatenate((np.arange(p2, n), np.arange(p2)))
+    y = np.take(y, shiftlist)
+    return y
+
+
+
+if __name__ == '__main__':
+    # x = np.random.random(2**10)
+    # print(np.allclose(IFFT(x), np.fft.ifft(x)))
+    # X = DFT_slow(x)
+    # x2 = IDFT_slow(X)
+
+
+    # print(np.allclose(x, x2))
+    # print(np.allclose(IDFT_slow(X), np.fft.ifft(X)))
+    #----Q2(a)----#
+    a = 1
+    N = 2**10
+    x = np.linspace(-pi, pi, N)
+    g = np.exp(-a*x**2)
+    
+
+    # G analytical
+    s = np.linspace(-1000, 1000, N)
+    G_analytical = sqrt(pi)*np.exp(-pi**2*s**2/a**2)
+    plt.figure()
+    plt.plot(s, G_analytical, label='G(s) (Analytical Expression)')
+
+    # f series analytical
+    x = np.linspace(-5*pi, 5*pi, N)
+    f_analytical = []
+    for x_m in x:
+        f_m = []
+        for m in np.arange(-500,500):
+            f_m.append(np.exp(-a*(x_m-2.0*pi*m)**2))
+        f_analytical.append(np.sum(f_m))
+
+    plt.figure()
+    plt.plot(x, f_analytical, label='f(x) (Analytical Expression)')
+    plt.plot(x, g, label='g(x)')
+
+    # f_hat analytical
+    
+
+
+
+    #----Q2(b)----#
+    x = np.linspace(-pi, pi, N)
+    g_tilde = IFFT(g)
+    print(g_tilde.shape[0])
+
+    f_fourier = []  # Fourier series interpolation
+    for x_n in x:
+        single_term = []
+        for n in range(-N//2, N//2):
+            single_term.append(g_tilde[n]*np.exp(1j*n*x_n))
+        f_fourier.append(np.sum(single_term))
+    # print(f)
+    f_fourier = FFTshift(f_fourier)
+    plt.figure()
+    plt.plot(np.real(f_fourier))
+    plt.plot(g)
+    plt.show()
+
