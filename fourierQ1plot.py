@@ -162,7 +162,7 @@ def FFTshift(x):
 
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # x = np.random.random(2**10)
     # print(np.allclose(IFFT(x), np.fft.ifft(x)))
     # X = DFT_slow(x)
@@ -171,80 +171,85 @@ if __name__ == '__main__':
 
     # print(np.allclose(x, x2))
     # print(np.allclose(IDFT_slow(X), np.fft.ifft(X)))
-    # #----Q2(a)----#
-    # N = 2**10
-    # a = 5
-    # # G analytical
-    # s = np.linspace(-10, 10, N)
-    # G_analytical = sqrt(pi)*np.exp(-pi**2*s**2/a**2)
-    # plt.figure()
-    # plt.plot(s, G_analytical)
-    # plt.xlabel('s')
-    # plt.ylabel('G(s) (Analytical Expression)')
+    #----Q2(a)----#
+N = 2**10
+a_s = [2/pi, 1, 5, 10]
+plt.figure()
+ls = ['-', ':', '-.', '--']
+for index in range(4):
+    a = a_s[index]
+    # G analytical
+    s = np.linspace(-10, 10, N)
+    G_analytical = sqrt(pi)*np.exp(-pi**2*s**2/a**2)
+    # plt.figure(0)
+#     plt.plot(s, G_analytical, linestyle=ls[index])
+# plt.xlabel('s')
+# plt.ylabel('G(s) (Analytical Expression)')
     # plt.title('a={}'.format(a))
 
-    # # f function analytical
-    # x = np.linspace(-2*pi, 2*pi, N)
-    # g = np.exp(-a*x**2)
-    # f_analytical = []
-    # for x_m in x:
-    #     f_m = []
-    #     for m in np.arange(-10,10):
-    #         f_m.append(np.exp(-a*(x_m-2.0*pi*m)**2))
-    #     f_analytical.append(np.sum(f_m))
+    # f function analytical
+    x = np.linspace(-2*pi, 2*pi, N)
+    g = np.exp(-a*x**2)
+    f_analytical = []
+    for x_m in x:
+        f_m = []
+        for m in np.arange(-10,10):
+            f_m.append(np.exp(-a*(x_m-2.0*pi*m)**2))
+        f_analytical.append(np.sum(f_m))
 
-    # # f_hat analytical
-    # x_u = pi
-    # x_l = -pi
-    # f_fourier_analytical = []
-    # f_hat = []
-    # for x_n in x:
-    #     sum_temp = []
-    #     for n in range(-25, 25):
-    #         integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
-    #         f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
-    #         sum_temp.append( f_hat_approximation*np.exp(1j*n*x_n) )
+    # f_hat analytical
+    x_u = pi
+    x_l = -pi
+    f_fourier_analytical = []
+    f_hat = []
+    for x_n in x:
+        sum_temp = []
+        for n in range(-25, 25):
+            integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
+            f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
+            sum_temp.append( f_hat_approximation*np.exp(1j*n*x_n) )
 
-    #         if x_n == x[0]:
-    #             # The coefficents are same for any x
-    #             f_hat.append(f_hat_approximation)
+            if x_n == x[0]:
+                # The coefficents are same for any x
+                f_hat.append(f_hat_approximation)
 
-    #     f_fourier_analytical.append(np.sum(sum_temp))
+        f_fourier_analytical.append(np.sum(sum_temp))
 
-    # plt.figure()
+    # plt.figure(1)
     # plt.plot(x, g, '-k',label='g(x)')
+    # plt.plot(x, g, linestyle=ls[index])
     # plt.plot(x, f_analytical, '-.r', label='f(x) (Analytical Expression)')
     # plt.plot(x, np.real(f_fourier_analytical), '-g', label='Sf(x) (Truncated Foureir series)')
     # plt.xlabel('x')
     # plt.ylabel('function value')
+    # plt.ylabel('g(x)')
     # plt.title('a={}'.format(a))
 
     # plt.figure()
-    # print(len(f_hat))
-    # plt.plot(f_hat)
-    # plt.xlabel('n')
-    # plt.ylabel('f_hat(a)')
-    # plt.title('a={}'.format(a))
+    n = np.linspace(-25, 25, len(f_hat))
+    print(len(f_hat))
+    plt.plot(n, f_hat, linestyle=ls[index])
+plt.xlabel('n')
+plt.ylabel('f_hat(a)')
+# plt.title('a={}'.format(a))
 
-    #----Q2(b)----#
-    N = 2**10
-    a = 5
-    x = np.linspace(-pi, pi, N)
-    g = np.exp(-a*x**2)
-    g_tilde = IFFT(g)
-    print(g_tilde.shape[0])
+    # plt.plot(s, G_analytical, label='G(s) (Analytical Expression)')
 
-    f_fourier = []  # Fourier series interpolation
-    for x_n in x:
-        single_term = []
-        for n in range(-N//2, N//2):
-            single_term.append(g_tilde[n]*np.exp(1j*n*x_n))
-        f_fourier.append(np.sum(single_term))
-    # print(f)
-    f_fourier = FFTshift(f_fourier)
-    plt.figure()
-    plt.plot(np.real(f_fourier))
-    plt.plot(g)
-plt.legend(loc=2)
+    # #----Q2(b)----#
+    # x = np.linspace(-pi, pi, N)
+    # g_tilde = IFFT(g)
+    # print(g_tilde.shape[0])
+
+    # f_fourier = []  # Fourier series interpolation
+    # for x_n in x:
+    #     single_term = []
+    #     for n in range(-N//2, N//2):
+    #         single_term.append(g_tilde[n]*np.exp(1j*n*x_n))
+    #     f_fourier.append(np.sum(single_term))
+    # # print(f)
+    # f_fourier = FFTshift(f_fourier)
+    # plt.figure()
+    # plt.plot(np.real(f_fourier))
+    # plt.plot(g)
+plt.legend(['a=2/pi', 'a=1', 'a=5', 'a=10'], loc=2)
 plt.show()
-
