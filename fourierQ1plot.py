@@ -2,6 +2,7 @@ from math import pi, sqrt, inf
 import numpy as np
 from scipy.special import erf
 import matplotlib.pyplot as plt
+from numerical.calculus import *
 
 '''
 TODO:
@@ -179,34 +180,40 @@ ls = ['-', ':', '-.', '--']
 for index in range(4):
     a = a_s[index]
     # G analytical
-    s = np.linspace(-10, 10, N)
-    G_analytical = sqrt(pi)*np.exp(-pi**2*s**2/a**2)
-    # plt.figure(0)
+    s = np.linspace(-5, 5, N)
+    # G = np.exp(-pi**2*n**2/(a*T**2))*sqrt(pi)/(2*T*sqrt(a))
+#     G_analytical = sqrt(pi/a)*np.exp(-pi**2*s**2/a)
+#     plt.figure(0)
 #     plt.plot(s, G_analytical, linestyle=ls[index])
+#     val = trapezoidal_integ(s, G_analytical)
+#     print(val)
 # plt.xlabel('s')
 # plt.ylabel('G(s) (Analytical Expression)')
+
     # plt.title('a={}'.format(a))
 
-    # f function analytical
+    # # f function analytical
     x = np.linspace(-2*pi, 2*pi, N)
     g = np.exp(-a*x**2)
-    f_analytical = []
-    for x_m in x:
-        f_m = []
-        for m in np.arange(-10,10):
-            f_m.append(np.exp(-a*(x_m-2.0*pi*m)**2))
-        f_analytical.append(np.sum(f_m))
+    # f_analytical = []
+    # for x_m in x:
+    #     f_m = []
+    #     for m in np.arange(-10,10):
+    #         f_m.append(np.exp(-a*(x_m-2.0*pi*m)**2))
+    #     f_analytical.append(np.sum(f_m))
 
     # f_hat analytical
-    x_u = pi
-    x_l = -pi
+    x_u = 300
+    x_l = 0
     f_fourier_analytical = []
     f_hat = []
+    T = x_u
     for x_n in x:
         sum_temp = []
-        for n in range(-25, 25):
+        for n in range(-100, 100):
             integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
-            f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
+            # f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
+            f_hat_approximation = np.exp(-pi**2*n**2/(a*T**2))*sqrt(pi)/(2*T*sqrt(a))
             sum_temp.append( f_hat_approximation*np.exp(1j*n*x_n) )
 
             if x_n == x[0]:
@@ -231,7 +238,7 @@ for index in range(4):
     plt.plot(n, f_hat, linestyle=ls[index])
 plt.xlabel('n')
 plt.ylabel('f_hat(a)')
-# plt.title('a={}'.format(a))
+plt.title('a={}'.format(a))
 
     # plt.plot(s, G_analytical, label='G(s) (Analytical Expression)')
 
