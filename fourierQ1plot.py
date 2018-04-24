@@ -1,8 +1,8 @@
-from math import pi, sqrt, inf
+from math import pi, sqrt
 import numpy as np
 from scipy.special import erf
 import matplotlib.pyplot as plt
-from numerical.calculus import *
+# from numerical.calculus import *
 
 '''
 TODO:
@@ -210,7 +210,7 @@ for index in range(4):
     T = x_u
     for x_n in x:
         sum_temp = []
-        for n in range(-100, 100):
+        for n in range(-10, 10):
             integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
             # f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
             f_hat_approximation = np.exp(-pi**2*n**2/(a*T**2))*sqrt(pi)/(2*T*sqrt(a))

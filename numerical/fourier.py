@@ -1,4 +1,4 @@
-from math import pi, sqrt, inf
+from math import pi, sqrt
 import numpy as np
 from scipy.special import erf
 import matplotlib.pyplot as plt
@@ -10,98 +10,6 @@ TODO:
 3. Mapping frequency to phisical frequency
 4. Mapping Amplitude to phiscal Amplitude
 '''
-
-# # Example 1, pure sin and cos function as input
-
-# # Parameters
-# fs = 1000.0 # Sampling rate in Hz, must larger than Sc/2
-# dt = 1.0/fs # Sample time in sec
-# Sc1 = 50.0 # Fucntion frequency
-# Sc2 = 80.0 # Fucntion frequency
-# x = np.linspace(0.0, 1000*dt, 1000)
-# y = np.sin(Sc1 * 2.0*np.pi*x) + 0.5*np.sin(Sc2 * 2.0*np.pi*x)
-
-# # Numerical FFT by numpy library 
-# Y = np.fft.fft(y)
-# N = len(Y) # half the length of the output of the FFT.
-# X = np.linspace(-fs/2, fs/2, N) # Map frequency to real frequency by Nyquist frequency theorem
-
-# # Applied windows function
-# hann = np.hanning(len(y))
-# Yhann = np.fft.fft(hann*y)
-# plt.plot(X, 4*np.abs(Yhann[:N])/N)
-# plt.grid()
-# plt.show()
-
-# # Example 2, Guassian fucntion as input
-
-# # Parameters
-# a = 10
-# x = np.linspace(-10, 10, 2000)
-# g = np.exp(-a*x**2) 
-
-# # Numerical FFT by numpy library 
-# G = np.fft.fft(g)
-# N = len(Y)//2 # half the length of the output of the FFT.
-# dt = x[1] - x[0]
-# fs = 1/dt
-# X = np.linspace(0, fs/2, N) # Map frequency to real frequency by Nyquist frequency theorem
-
-# # Applied windows function
-# hann = np.hanning(len(g))
-# Ghann = np.fft.fft(hann*g)
-# plt.plot(X, 2.0*np.abs(Ghann[:N])/N)
-
-# # Analytical fourier transform 
-# AnalG = np.sqrt(np.pi/a)*np.exp(-np.pi**2*X**2/a)
-# plt.plot(X, AnalG)
-
-
-# # Analytical fouier transform
-# # G_analytical = sqrt(pi)*np.exp(-pi**2*s**2/a**2)
-
-# plt.show()
-
-# Follow the tutorial
-
-# def DFT_slow(x):
-#     """Compute the discrete Fourier Transform of the 1D array x"""
-#     x = np.asarray(x, dtype=float)
-#     N = x.shape[0]
-#     n = np.arange(N)
-#     k = n.reshape((N, 1))
-#     M = np.exp(-2j * np.pi * k * n / N)
-#     # print(M)
-#     # print(k * n)
-#     return np.dot(M, x)
-# # x = np.random.random(1024)
-# # x = np.arange(10)
-# # np.allclose(DFT_slow(x), np.fft.fft(x))
-# # DFT_slow(x)
-# # a = [1.0 + 2.0j, 1.0 + 2.0j, ]
-# # b = [2.0, 4.0]
-# # print(np.dot(a, b))
-
-# def FFT(x):
-#     """A recursive implementation of the 1D Cooley-Tukey FFT"""
-#     x = np.asarray(x, dtype=float)
-#     N = x.shape[0]
-#     print(N)
-#     if N % 2 > 0:
-#         raise ValueError("size of x must be a power of 2")
-#     elif N <= 32:  # this cutoff should be optimized
-#         return DFT_slow(x)
-#     else:
-#         X_even = FFT(x[::2])
-#         X_odd = FFT(x[1::2])
-#         factor = np.exp(-2j * np.pi * np.arange(N) / N)
-#         return np.concatenate([X_even + factor[:(N / 2)] * X_odd,
-#                                X_even + factor[(N / 2):] * X_odd])
-# x = np.random.random(1024)
-# # print(np.fft.fft(x))
-# print(np.allclose(FFT(x), np.fft.fft(x)))
-
-# IDFT
 
 def DFT(x):
     """Compute the discrete Fourier Transform of the 1D array x"""
@@ -160,7 +68,36 @@ def FFTshift(x):
     y = np.take(y, shiftlist)
     return y
 
+def cal_fourier_transform(s, a):
+    # cal G(s) by analytical way
+    return sqrt(pi/a)*np.exp(-pi**2*s**2/a)
 
+def cal_fourier_series(x, a, x_boundary):
+    # cal f_hat, Sf(x) by analytical way
+    x_l = x_boundary[0]
+    x_u = x_boundary[1]
+    f_fourier_series= [] # Sf(x)
+    series_coeff = [] # f_hat
+    for x_n in x:
+        sum_temp = []
+        for n in range(-50,50):
+            integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
+            f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
+            sum_temp.append( f_hat_approximation*np.exp(1j*n*x_n) )
+
+            if x_n == x[0]:
+                # The coefficents are same for any x
+                series_coeff.append(f_hat_approximation)
+        f_fourier_series.append(np.sum(sum_temp))
+    n_coeff = np.linspace(-10, 10, len(series_coeff))
+    return n_coeff, f_fourier_series, series_coeff
+
+def get_DFT_coeff(g, N):
+    g_tilde = abs(FFT(g)/N)
+    n = np.linspace(-10, 10, N)
+    g_tilde_shift = FFTshift(g_tilde)
+
+    return n, g_tilde_shift
 
 if __name__ == '__main__':
     # x = np.random.random(2**10)
@@ -233,36 +170,33 @@ if __name__ == '__main__':
     # X = DFT_slow(x)
     # x2 = IDFT_slow(X)
 
-    # ----Q2(b)----#
-
-    N = 2**10
-    a = 5
-    x = np.linspace(-pi, pi, N)
-    g = np.exp(-a*x**2)
-    g_tilde = FFT(g)/N
-    n = np.linspace(-N/2, N/2, N)
-    g_tilde_shift = FFTshift(g_tilde)
+    # # ----Q2(b)----#
+    # N = 2**7
+    # a = 5
+    # x = np.linspace(-pi, pi, N)
+    # g = np.exp(-a*x**2)
+    # g_tilde = FFT(g)/N
+    # n = np.linspace(-N/2, N/2, N)
+    # g_tilde_shift = FFTshift(g_tilde)
     
-    a_s = [2/pi, 1, 5, 10]
-    ls = ['-', ':', '-.', '--']
-    plt.figure(7)
-    for index in range(4):
-        a = a_s[index]
-        g = np.exp(-a*x**2)
-        g_tilde = FFT(g)/N
-        n = np.linspace(-50, 50, N)
-        g_tilde_shift = FFTshift(g_tilde)
-        plt.plot(n, abs(g_tilde_shift), linestyle=ls[index])
-
-
+    # a_s = [2/pi, 1, 5, 10]
+    # ls = ['-', ':', '-.', '--']
     # plt.figure(7)
-    # plt.plot(n, abs(g_tilde_shift), label='g_tilde(a)')
-    plt.xlabel('n')
-    plt.ylabel('g_tilde(a)')
-    plt.legend(['a=2/pi', 'a=1', 'a=5', 'a=10'], loc=2)
-    plt.title('N={}'.format(N))
+    # for index in range(4):
+    #     a = a_s[index]
+    #     g = np.exp(-a*x**2)
+    #     g_tilde = FFT(g)/N
+    #     n = np.linspace(-50, 50, N)
+    #     g_tilde_shift = FFTshift(g_tilde)
+    #     plt.plot(n, abs(g_tilde_shift), linestyle=ls[index])
 
 
+    # # plt.figure(7)
+    # # plt.plot(n, abs(g_tilde_shift), label='g_tilde(a)')
+    # plt.xlabel('n')
+    # plt.ylabel('g_tilde(a)')
+    # plt.legend(['a=2/pi', 'a=1', 'a=5', 'a=10'], loc=2)
+    # plt.title('N={}'.format(N))
 
     # f_fourier = []  # Fourier series interpolation
     # for x_n in x:
@@ -280,8 +214,32 @@ if __name__ == '__main__':
     # plt.title('a={}, N={}'.format(a, N))
 
     #----Q2(c)----#
+    N = 2**10
+    a = 5
+    # G analytical
+    s = np.linspace(-10, 10, N)
+    G_s = cal_fourier_transform(s, a)
 
+    # f_hat
+    x = np.linspace(-pi, pi, N)
+    x_boundary = [-pi, pi]
+    n_f_hat, Sf, f_hat = cal_fourier_series(x, a, x_boundary)
+    print(len(f_hat))
 
-# plt.legend(loc=2)
+    # g_tilde
+    g = np.exp(-a*x**2)
+    n_g_tilde, g_tilde = get_DFT_coeff(g, N)
+
+    plt.figure()
+    plt.plot(s, G_s, ':r', label='G(s)')
+    plt.xlabel('s')
+    plt.figure()
+    plt.plot(n_f_hat, f_hat, '-.g', label='f_hat(n)')
+    plt.xlabel('n')
+    plt.figure()
+    plt.plot(n_g_tilde, g_tilde, '--b', label='g_tilde(n)')
+    plt.xlabel('n')
+        
+    plt.legend(loc=2)
     plt.show()
 
