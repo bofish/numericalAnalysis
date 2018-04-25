@@ -72,7 +72,7 @@ def cal_fourier_transform(s, a):
     # cal G(s) by analytical way
     return sqrt(pi/a)*np.exp(-pi**2*s**2/a)
 
-def cal_fourier_series(x, a, x_boundary):
+def cal_fourier_series(x, a, x_boundary, N):
     # cal f_hat, Sf(x) by analytical way
     x_l = x_boundary[0]
     x_u = x_boundary[1]
@@ -80,27 +80,50 @@ def cal_fourier_series(x, a, x_boundary):
     series_coeff = [] # f_hat
     for x_n in x:
         sum_temp = []
-        for n in range(-50,50):
+        for n in range(-N//2,N//2):
             integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
-            f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi)*integ_val/(4*pi*sqrt(a))
+            f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi/a)*integ_val/(4*pi)
             sum_temp.append( f_hat_approximation*np.exp(1j*n*x_n) )
 
             if x_n == x[0]:
                 # The coefficents are same for any x
                 series_coeff.append(f_hat_approximation)
         f_fourier_series.append(np.sum(sum_temp))
-    n_coeff = np.linspace(-10, 10, len(series_coeff))
+    n_coeff = np.linspace(-N//2, N//2, N)
     return n_coeff, f_fourier_series, series_coeff
+
+def cal_fourier_series_coeff(a, x_boundary, N):
+    # cal f_hat by analytical way
+    x_l = x_boundary[0]
+    x_u = x_boundary[1]
+    series_coeff = [] # f_hat
+    for n in range(-N//2,N//2):
+        integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
+        f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi/a)*integ_val/(4*pi)
+
+        series_coeff.append(f_hat_approximation)
+    n_coeff = np.linspace(-N//2, N//2, N)
+    return n_coeff, series_coeff
+
+def fourier_series_interpolation(x, series_coeff, N):
+    # cal Sf(x) by analytical way
+    f_fourier_series= [] # Sf(x)
+    for x_n in x:
+        sum_temp = []
+        for n in range(-N//2,N//2):
+            sum_temp.append( series_coeff[n+N//2]*np.exp(1j*n*x_n) )
+        f_fourier_series.append(np.sum(sum_temp))
+    return f_fourier_series
 
 def get_DFT_coeff(g, N):
     g_tilde = abs(FFT(g)/N)
-    n = np.linspace(-10, 10, N)
+    n = np.linspace(-N//2, N//2+1, N+1)
     g_tilde_shift = FFTshift(g_tilde)
-
+    g_tilde_shift = np.append(g_tilde_shift, 0)
     return n, g_tilde_shift
 
 if __name__ == '__main__':
-    # x = np.random.random(2**10)
+# x = np.random.random(2**10)
     # print(np.allclose(IFFT(x), np.fft.ifft(x)))
     # X = DFT_slow(x)
     # x2 = IDFT_slow(X)
@@ -211,35 +234,117 @@ if __name__ == '__main__':
     # plt.plot(np.real(f_fourier), ':g', label='Sf(x)')
     # plt.xlabel('x')
     # plt.ylabel('function value')
-    # plt.title('a={}, N={}'.format(a, N))
+# plt.title('a={}, N={}'.format(a, N))
 
     #----Q2(c)----#
     N = 2**10
-    a = 5
-    # G analytical
+    a = 0.2
+    x = np.linspace(-2*pi, 2*pi, N)
     s = np.linspace(-10, 10, N)
+    g = np.exp(-a*x**2)
+    
+    # G analytical
     G_s = cal_fourier_transform(s, a)
 
     # f_hat
-    x = np.linspace(-pi, pi, N)
     x_boundary = [-pi, pi]
-    n_f_hat, Sf, f_hat = cal_fourier_series(x, a, x_boundary)
-    print(len(f_hat))
+    N_f = 64 # the power of series, i.g. n = [-25,25]
+    # n_f_hat, Sf, f_hat = cal_fourier_series(x, a, x_boundary, N_f)
+    n_f_hat, f_hat = cal_fourier_series_coeff(a, x_boundary, N_f)
+    Sf = fourier_series_interpolation(x, f_hat, N_f)
+
+    # # Loop form
+    x_boundary = [-pi, pi]
+    N_f = 64
+    # N_gs = [2, 4, 8, 16, 32, 64, 128]
+    a_s = [0.1, 0.2, 2/pi, 1, 5, 10]
+    # a_s = [2/pi]
+    # for a in a_s:
+    # # N_g = 2**6
+    #     n_f_hat, f_hat = cal_fourier_series_coeff(a, x_boundary, N_f)
+
+    #     plt.figure()
+    #     plt.plot(n_f_hat, f_hat, '-.g', label='f_hat(n)')
+    #     plt.bar(n_f_hat, f_hat, align='center')
+    #     plt.xlim(-32, 32)
+    #     plt.ylim(0, 0.79)
+    #     plt.xlabel('n')
+    #     plt.ylabel('Function value')
+    #     plt.title('a={}, N={}'.format(a, N_f))
+    #     plt.legend(loc=1)
+
 
     # g_tilde
-    g = np.exp(-a*x**2)
-    n_g_tilde, g_tilde = get_DFT_coeff(g, N)
+    N_g = 2**6
+    x_g = np.linspace(-pi, pi, N_g)
+    g_g = np.exp(-a*x_g**2)
+    n_g_tilde, g_tilde = get_DFT_coeff(g_g, N_g)
+    Sg = fourier_series_interpolation(x, g_tilde, N_g)
 
-    plt.figure()
-    plt.plot(s, G_s, ':r', label='G(s)')
-    plt.xlabel('s')
-    plt.figure()
-    plt.plot(n_f_hat, f_hat, '-.g', label='f_hat(n)')
-    plt.xlabel('n')
-    plt.figure()
-    plt.plot(n_g_tilde, g_tilde, '--b', label='g_tilde(n)')
-    plt.xlabel('n')
-        
-    plt.legend(loc=2)
+    # Loop form
+    # N_gs = [2, 4, 8, 16, 32, 64, 128]
+    a_s = [0.1, 0.2, 2/pi, 1, 5, 10]
+    a_s = [2/pi]
+    for a in a_s:
+    # N_g = 2**6
+        x_g = np.linspace(-pi, pi, N_g)
+        g = np.exp(-a*x_g**2)
+        n_g_tilde, g_tilde = get_DFT_coeff(g, N_g)
+
+        plt.figure()
+        plt.plot(n_g_tilde, g_tilde, '-.g', label='g_tilde(n)')
+        plt.bar(n_g_tilde, g_tilde, align='center')
+        plt.xlim(-32, 32)
+        plt.ylim(0, 0.79)
+        plt.xlabel('n')
+        plt.ylabel('Function value')
+        plt.title('a={}, N={}'.format('2/pi', N_g))
+        plt.legend()
+
+    # # Plot
+    # # G(s) part
+    # plt.figure()
+    # plt.plot(s, G_s, '-k', label='G(s)')
+    # plt.xlabel('s')
+    # plt.ylabel('Function value')
+    # plt.title('a={}'.format(a))
+    # plt.legend()
+
+    # # f_hat and Sf(x) part
+    # plt.figure()
+    # plt.plot(x, Sf, '-.g', label='Sf(x)')
+    # plt.plot(x, g, ':r', label='g(x)')
+    # plt.xlabel('x')
+    # plt.ylabel('Function value')
+    # plt.title('a={}, N={}'.format(a, N))
+    # plt.legend()
+
+    # plt.figure()
+    # plt.plot(n_f_hat, f_hat, '-.g', label='f_hat(n)')
+    # plt.bar(n_f_hat, f_hat, align='center')
+    # plt.xlabel('n')
+    # plt.ylabel('Function value')
+    # plt.title('a={}, N={}'.format(a, N_f))
+    # plt.legend()
+
+    # # g_tilde and Sg(x) part
+    # plt.figure()
+    # plt.plot(n_g_tilde, g_tilde, '-.b', label='g_tilde(n)')
+    # plt.bar(n_g_tilde, g_tilde, align='center')
+    # # plt.xlim(-32, 32)
+    # # plt.ylim(0, 0.13)
+    # plt.xlabel('n')
+    # plt.ylabel('Function value')
+    # plt.title('a={}, N={}'.format(a, N_g))
+    # plt.legend()
+
+    # plt.figure()
+    # plt.plot(x, Sg, '-.g', label='Sg(x)')
+    # plt.plot(x, g, ':r', label='g(x)')
+    # plt.xlabel('x')
+    # plt.ylabel('Function value')
+    # plt.title('a={}, N={}'.format(a, N))
+    # plt.legend()
+
     plt.show()
 
