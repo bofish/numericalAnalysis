@@ -33,34 +33,15 @@ def origin_fun(x, a, b):
     return f
 
 def polynomial_vandermode(x, f, x_sub):
-    assert len(x)==10, 'only support N=10'
-    correspond_mat = np.matrix([
-        [1, x[0], x[0]**2, x[0]**3, x[0]**4, x[0]**5, x[0]**6, x[0]**7, x[0]**8, x[0]**9],
-        [1, x[1], x[1]**2, x[1]**3, x[1]**4, x[1]**5, x[1]**6, x[1]**7, x[1]**8, x[1]**9],
-        [1, x[2], x[2]**2, x[2]**3, x[2]**4, x[2]**5, x[2]**6, x[2]**7, x[2]**8, x[2]**9],
-        [1, x[3], x[3]**2, x[3]**3, x[3]**4, x[3]**5, x[3]**6, x[3]**7, x[3]**8, x[3]**9],
-        [1, x[4], x[4]**2, x[4]**3, x[4]**4, x[4]**5, x[4]**6, x[4]**7, x[4]**8, x[4]**9],
-        [1, x[5], x[5]**2, x[5]**3, x[5]**4, x[5]**5, x[5]**6, x[5]**7, x[5]**8, x[5]**9],
-        [1, x[6], x[6]**2, x[6]**3, x[6]**4, x[6]**5, x[6]**6, x[6]**7, x[6]**8, x[6]**9],
-        [1, x[7], x[7]**2, x[7]**3, x[7]**4, x[7]**5, x[7]**6, x[7]**7, x[7]**8, x[7]**9],
-        [1, x[8], x[8]**2, x[8]**3, x[8]**4, x[8]**5, x[8]**6, x[8]**7, x[8]**8, x[8]**9],
-        [1, x[9], x[9]**2, x[9]**3, x[9]**4, x[9]**5, x[9]**6, x[9]**7, x[9]**8, x[9]**9]
-    ])
-    forcing_term = np.matrix([
-        [f[0]],
-        [f[1]],
-        [f[2]],
-        [f[3]],
-        [f[4]],
-        [f[5]],
-        [f[6]],
-        [f[7]],
-        [f[8]],
-        [f[9]]
-    ])
-    sol = lstsq(correspond_mat, forcing_term, rcond=-1)
-    coeff = sol[0]
-    f_hat = coeff.item(0)*np.ones(len(x_sub)) + coeff.item(1)*x_sub + coeff.item(2)*x_sub**2 + coeff.item(3)*x_sub**3 + coeff.item(4)*x_sub**4 + coeff.item(5)*x_sub**5 + coeff.item(6)*x_sub**6 + coeff.item(7)*x_sub**7 + coeff.item(8)*x_sub**8 + coeff.item(9)*x_sub**9
+    M = len(x)
+    vandermonder_mat = np.matlib.ones((M,M))
+    B = np.matlib.zeros((M,1))
+    for j in range(M):
+        vandermonder_mat[j][:] = [x[j]**i for i in range(M)]
+        B[j] = [f[j]]
+    coeff = lstsq(vandermonder_mat, B, rcond=-1)[0]
+    HOT = [coeff.item(i)*x_sub**i for i in range(1,M)]
+    f_hat = coeff.item(0)*np.ones(len(x_sub)) + np.sum(HOT, axis=0)
     return f_hat
 
 def polynomial_lagrange(x, f):
