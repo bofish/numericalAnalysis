@@ -1,7 +1,8 @@
 import numpy as np
+from LU_decomposition_example import LU_solver
 
 # Step 1: Discretize x
-n = 11
+n = 1000
 x = np.linspace(0.0, 1.0, n)
 dx = x[1] - x[0]
 
@@ -10,22 +11,23 @@ dx = x[1] - x[0]
 a_i = 1/dx**2 - 2/dx
 b_i = -2/dx**2 + 4
 c_i = 1/dx**2 + 2/dx
-d_i = x_i
+d = [[x_i] if x_i!=x[n-2] else [x_i - c_i] for x_i in x[1:n-1]]
 
 # Step 6: Set up the linear system, return a banded structure matrix
-def make_band_mat():
-    y = [[0.0] for i in range(n)]
-    # Create a zero matrix with n*n dimension
-    A = [[0.0] * n for i in range(n)]
-    for rpw in range(n):
-        A[row][i:i+2] = 1
-    
-    for j in range(1,M-1):
-        row = j-1
-        coeff_mat[row, j-1] = delta[j-1]/6
-        coeff_mat[row, j] = (delta[j-1]+delta[j])/3
-        coeff_mat[row, j+1] = delta[j]/6
-        f_mat[row, 0] = delta_f[j] - delta_f[j-1]
-    # For the nature spline, we given the conditin which is f1" = fn" = 0
-    coeff_mat = np.delete(coeff_mat, M-1, 1)
-    coeff_mat = np.delete(coeff_mat, 0, 1)
+# Create a zero matrix A with n*n-2 dimension and zero vector b with n-2 dimension
+A = np.array([[0.0] * n for i in range(n-2)])
+
+# Perform banded strucuture iteration
+for i in range(n-2):
+    row = i
+    A[row, i] = a_i
+    A[row, i+1] = b_i
+    A[row, i+2] = c_i
+
+# Eliminate first and last column into a square matrix
+A = np.delete(A, n-1, 1)
+A = np.delete(A, 0, 1)
+
+# Solve the linear system of equations Ay = d
+y = LU_solver(A, d)
+print(y)
