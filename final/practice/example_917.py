@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pylab as plt
-from easy_IPV_2nd_order_example import RK4, forward_Euler
+from IPV_2nd_order_example import RK4, forward_Euler
 
 if __name__ == '__main__':
 
