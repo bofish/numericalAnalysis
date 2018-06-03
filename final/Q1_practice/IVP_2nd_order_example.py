@@ -3,15 +3,15 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
 def RK4(f, g, t0, y0, v0, t1, N):
-    vt = [0] * (N + 1)
-    vy = [0] * (N + 1)
-    vv = [0] * (N + 1)
+    vt = [0] * N
+    vy = [0] * N
+    vv = [0] * N
 
-    dt = (t1 - t0) / float(N)
+    dt = (t1 - t0) / float(N-1)
     vt[0] = t = t0
     vy[0] = y = y0
     vv[0] = v = v0
-    for i in range(1, N + 1):
+    for i in range(1, N):
         k1 = dt * f(t, y, v)
         l1 = dt * g(t, y, v)
         k2 = dt * f(t + 0.5*dt, y + 0.5*k1, v + 0.5*l1)
@@ -26,15 +26,15 @@ def RK4(f, g, t0, y0, v0, t1, N):
     return vt, vy, vv
 
 def forward_Euler(f, g, t0, y0, v0, t1, N):
-    vt = [0] * (N + 1)
-    vy = [0] * (N + 1)
-    vv = [0] * (N + 1)
+    vt = [0] * N
+    vy = [0] * N
+    vv = [0] * N
 
-    dt = (t1 - t0) / float(N)
+    dt = (t1 - t0) / float(N-1)
     vt[0] = t = t0
     vy[0] = y = y0
     vv[0] = v = v0
-    for i in range(1, N + 1):
+    for i in range(1, N):
         vt[i] = t = t0 + i * dt
         vy[i] = y = y + dt * f(t, y, v)
         vv[i] = v = v + dt * g(t, y, v)

@@ -7,9 +7,9 @@ if __name__ == '__main__':
     #----  Exact solution ----#
     n = 500
     x = np.linspace(0.0, 1.0, n)
-    c1 = -1/4
-    c2 = (1 + np.exp(-2)/4)/np.exp(-2)
-    y_exact = c1*np.exp(-2*x) + c2*x*np.exp(-2*x) - x/4 + 1/4 
+    c1 = 1/4
+    c2 = (1 - np.exp(-2)/4)/np.exp(-2)
+    y_exact = c1*np.exp(-2*x) + c2*x*np.exp(-2*x) + x/4 - 1/4 
 
     #---- finite diif ----#
     # Step 1: Discretize x
