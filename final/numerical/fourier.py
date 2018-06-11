@@ -5,12 +5,52 @@ import matplotlib.pyplot as plt
 
 def DFT(x):
     """Compute the discrete Fourier Transform of the 1D array x"""
-    x = np.asarray(x, dtype=float)
+    x = np.asarray(x, dtype=np.complex_)
     N = x.shape[0]
     n = np.arange(N)
     k = n.reshape((N, 1))
     M = np.exp(-2j * np.pi * k * n / N)    
     return np.dot(M, x)
+
+def IDFT(X):
+    """Compute the discrete Fourier Transform of the 1D array x"""
+    X = np.asarray(X)
+    N = X.shape[0]
+    k = np.arange(N)
+    n = k.reshape((N, 1))
+    M = np.exp(2j * np.pi * k * n / N)
+    return np.dot(M, X)/N
+
+def FFT(x):
+    """A recursive implementation of the 1D Cooley-Tukey FFT"""
+    x = np.asarray(x, dtype=np.complex_)
+    N = x.shape[0]
+    
+    if N % 2 > 0:
+        raise ValueError("size of x must be a power of 2")
+    elif N <= 32:  # this cutoff should be optimized
+        return DFT(x)
+    else:
+        X_even = FFT(x[::2])
+        X_odd = FFT(x[1::2])
+        factor = np.exp(-2j * np.pi * np.arange(N) / N)
+        return np.concatenate([X_even + factor[:(N // 2)] * X_odd,
+                               X_even + factor[(N // 2):] * X_odd])
+
+def IFFT(X):
+    """A recursive implementation of the 1D Cooley-Tukey IFFT"""
+    X = np.asarray(X)
+    N = X.shape[0]
+    
+    if N % 2 > 0:
+        raise ValueError("size of x must be a power of 2")
+    elif N <= 32:  # this cutoff should be optimized
+        return IDFT(X)
+    else:
+        x_even = IFFT(X[::2])*(N/2)
+        x_odd = IFFT(X[1::2])*(N/2)
+        factor = np.exp(2j * np.pi * np.arange(N) / N)
+        return np.concatenate([x_even + factor[:(N // 2)] * x_odd,x_even + factor[(N // 2):] * x_odd])/N
 
 def DFT2(x):
     """Compute the discrete Fourier Transform of the 2D array x"""
@@ -30,7 +70,7 @@ def DFT2(x):
 
 def IDFT2(X):
     """Compute the discrete Fourier Transform of the 2D array x"""
-    X = np.asarray(X)
+    X = np.asarray(X, dtype=np.complex_)
     N = X.shape[0]
     x = np.zeros((N, N), dtype=np.complex_)
     for j in range(N):
@@ -44,45 +84,33 @@ def IDFT2(X):
             x[j,k] = np.sum(suma)
     return x/N**2
 
-def IDFT(X):
-    """Compute the discrete Fourier Transform of the 1D array x"""
-    X = np.asarray(X)
-    N = X.shape[0]
-    k = np.arange(N)
-    n = k.reshape((N, 1))
-    M = np.exp(2j * np.pi * k * n / N)
-    return np.dot(M, X)/N
-
-def FFT(x):
-    """A recursive implementation of the 1D Cooley-Tukey FFT"""
+def FFT2(x):
+    """A recursive implementation of the 2D Cooley-Tukey FFT"""
     x = np.asarray(x, dtype=float)
     N = x.shape[0]
     
     if N % 2 > 0:
         raise ValueError("size of x must be a power of 2")
     elif N <= 32:  # this cutoff should be optimized
-        return DFT(x)
+        return DFT2(x)
     else:
-        X_even = FFT(x[::2])
-        X_odd = FFT(x[1::2])
-        factor = np.exp(-2j * np.pi * np.arange(N) / N)
-        return np.concatenate([X_even + factor[:(N // 2)] * X_odd,
-                               X_even + factor[(N // 2):] * X_odd])
+        X_row = np.array([FFT(x[i,:]) for i in range(N)])
+        X_column = np.concatenate([np.array([FFT(X_row[:,i])]).T for i in range(N)], axis=1)
+        return X_column
 
-def IFFT(X):
-    """A recursive implementation of the 1D Cooley-Tukey FFT"""
-    X = np.asarray(X)
+def IFFT2(X):
+    """A recursive implementation of the 2D Cooley-Tukey FFT"""
+    X = np.asarray(X, dtype=np.complex_)
     N = X.shape[0]
     
     if N % 2 > 0:
         raise ValueError("size of x must be a power of 2")
     elif N <= 32:  # this cutoff should be optimized
-        return IDFT(X)
+        return IDFT2(X)
     else:
-        x_even = IFFT(X[::2])*(N/2)
-        x_odd = IFFT(X[1::2])*(N/2)
-        factor = np.exp(2j * np.pi * np.arange(N) / N)
-        return np.concatenate([x_even + factor[:(N // 2)] * x_odd,x_even + factor[(N // 2):] * x_odd])/N
+        x_row = np.array([IFFT(X[i,:]) for i in range(N)])
+        x_column = np.concatenate([np.array([IFFT(x_row[:,i])]).T for i in range(N)], axis=1)
+        return x_column
 
 def FFTshift(x):
     y = np.asarray(x)
@@ -130,5 +158,5 @@ if __name__ == '__main__':
     # x = np.random.random(2**10)
     # print(np.allclose(IFFT(x), np.fft.ifft(x)))
 
-    x = np.random.randn(64,64)
-    print(np.allclose(IDFT2(x), np.fft.ifft2(x)))
+    x = np.random.randn(1024,1024)
+    print(np.allclose(IFFT2(x), np.fft.ifft2(x)))
