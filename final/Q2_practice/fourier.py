@@ -126,7 +126,7 @@ def zero_padding(X):
     lb = (M - N)//2
     ub = (M + N)//2
     X_pad[lb:ub, lb:ub] = X
-    x_pad = IFFT2(X_pad)
+    x_pad = np.fft.ifft2(X_pad)
     return x_pad
 
 def convolution_spectral(U, V):
@@ -139,7 +139,7 @@ def convolution_spectral(U, V):
     w_pad = u_pad*v_pad
 
     # Step5: FFT
-    W_pad = FFT2(w_pad)
+    W_pad = np.fft.fft2(w_pad)
    
     # Step6: Chop off
     M = u_pad.shape[0]
@@ -191,16 +191,15 @@ def get_DFT_coeff(g, N):
     g_tilde_shift = np.append(g_tilde_shift, 0)
     return n, g_tilde_shift
 
-def RK4_2d(f, y0, N, dt, t1):
-    t0 = 0
-    Nt = (t1 - t0)/dt + 1
-    
+def RK4_2d(f, y0, N, dt, Nt):
+    t0 = 0    
     vt = np.zeros(Nt)
-    vy = np.array([np.zeros((N, N)) for i in range(Nt)])
+    vy = np.array([np.zeros((N, N), dtype=np.complex_) for i in range(Nt)])
     vt[0] = t = t0
     vy[0] = y = y0
 
     for i in range(1, Nt):
+        print(i)
         k1 = dt * f(y)
         k2 = dt * f(y + 0.5*k1)
         k3 = dt * f(y + 0.5*k2)
