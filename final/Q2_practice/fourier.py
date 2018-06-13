@@ -192,14 +192,14 @@ def get_DFT_coeff(g, N):
     return n, g_tilde_shift
 
 def RK4_2d(f, y0, N, dt, Nt):
-    t0 = 0    
+    t0 = 0
     vt = np.zeros(Nt)
     vy = np.array([np.zeros((N, N), dtype=np.complex_) for i in range(Nt)])
     vt[0] = t = t0
     vy[0] = y = y0
 
     for i in range(1, Nt):
-        print(i)
+        # print(i)
         k1 = dt * f(y)
         k2 = dt * f(y + 0.5*k1)
         k3 = dt * f(y + 0.5*k2)
@@ -215,18 +215,24 @@ def stability_monitor(x):
 if __name__ == '__main__':
     # x = np.random.random(2**10)
     # print(np.allclose(IFFT(x), np.fft.ifft(x)))
-
-    x = np.random.randn(16,16)
+    N = 256
+    x = np.random.randn(N,N)
     # print(np.allclose(IFFT2(x), np.fft.ifft2(x)))
     # U = np.random.randn(8,8)
     # W = np.random.randn(8,8)
     # UW = convolution_spectral(U,W)
     # print(UW.shape)
     # VW = convolution_spectral(V,W)
+    import seaborn as sns
+    x_hann = de_non_periodicity(x)
+    X_hann = np.fft.fft2(x_hann)
+    X_ori = np.fft.fft2(x)
+    print(np.allclose(x_hann, X_ori))
 
-    x = de_non_periodicity(x)
-    print(x)
-
-    t = np.arange(16)
+    plt.figure()
+    ax = sns.heatmap(X_hann.real, cmap="YlGnBu") 
+    plt.figure()
+    ax = sns.heatmap(X_ori.real, cmap="YlGnBu") 
+    plt.show()
 
 
