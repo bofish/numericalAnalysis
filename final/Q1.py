@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from LU_decomposition_example import LU_solver
-from IVP_2nd_order_example import RK4, forward_Euler
-
+from numerical.linag import LU_solver
+from numerical.ode import RK4, forward_Euler
+    
 def exact_solution(x):
     c1 = 1/4
     c2 = (1 - np.exp(-2)/4)/np.exp(-2)
@@ -130,8 +130,6 @@ if __name__ == '__main__':
     e_fd = []
     e_sh_RK4 = []
     e_sh_Euler = []
-    # Ns = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    # Ns = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500]
     Ns = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
     for N in Ns:
         print(N)
@@ -206,11 +204,11 @@ if __name__ == '__main__':
 
     # Merge error
     plt.figure()
-    plt.loglog(Ns, e_fd, label='Finite difference, m={:4.2f}'.format(slope_fd))
-    plt.loglog(Ns, e_sh_Euler, label='Forward Euler, m={:4.2f}'.format(slope_Euler))
-    plt.loglog(Ns, e_sh_RK4, label='RK4, m={:4.2f}'.format(slope_RK4))
+    plt.loglog(Ns, e_fd, label='m={:4.2f}'.format(slope_fd))
+    plt.loglog(Ns, e_sh_Euler, label='m={:4.2f}'.format(slope_Euler))
+    plt.loglog(Ns, e_sh_RK4, label='m={:4.2f}'.format(slope_RK4))
     plt.legend()
-    plt.title('Convergence rate of diffence scheme')
+    plt.title('Finite difference with convergence rate')
     plt.xlabel('N')
     plt.ylabel('Error')
     plt.grid()

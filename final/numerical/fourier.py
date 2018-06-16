@@ -1,6 +1,5 @@
 from math import pi, sqrt
 import numpy as np
-from scipy.special import erf
 import matplotlib.pyplot as plt
 
 def DFT(x):
@@ -111,6 +110,7 @@ def IFFT2(X):
         x_row = np.array([IFFT(X[i,:]) for i in range(N)])
         x_column = np.concatenate([np.array([IFFT(x_row[:,i])]).T for i in range(N)], axis=1)
         return x_column
+
 def de_non_periodicity(x):
     N = x.shape[0]
     h = np.hanning(N)   
@@ -126,7 +126,7 @@ def zero_padding(X):
     lb = (M - N)//2
     ub = (M + N)//2
     X_pad[lb:ub, lb:ub] = X
-    x_pad = IFFT2(X_pad)
+    x_pad = np.fft.ifft2(X_pad)
     return x_pad
 
 def convolution_spectral(U, V):
@@ -139,7 +139,7 @@ def convolution_spectral(U, V):
     w_pad = u_pad*v_pad
 
     # Step5: FFT
-    W_pad = FFT2(w_pad)
+    W_pad = np.fft.fft2(w_pad)
    
     # Step6: Chop off
     M = u_pad.shape[0]
@@ -157,77 +157,20 @@ def FFTshift(x):
     y = np.take(y, shiftlist)
     return y
 
-def cal_fourier_transform(s, a):
-    # cal G(s) by analytical way
-    return sqrt(pi/a)*np.exp(-pi**2*s**2/a)
-
-def cal_fourier_series_coeff(a, x_boundary, N):
-    # cal f_hat by analytical way
-    x_l = x_boundary[0]
-    x_u = x_boundary[1]
-    series_coeff = [] # f_hat
-    for n in range(-N//2,N//2):
-        integ_val = erf((x_u+n*1j/(2*a))*sqrt(a)) - erf((x_l+n*1j/(2*a))*sqrt(a))
-        f_hat_approximation = np.exp(-n**2/(4*a))*sqrt(pi/a)*integ_val/(4*pi)
-
-        series_coeff.append(f_hat_approximation)
-    n_coeff = np.linspace(-N//2, N//2, N)
-    return n_coeff, series_coeff
-
-def fourier_series_interpolation(x, series_coeff, N):
-    # cal Sf(x) by analytical way
-    f_fourier_series= [] # Sf(x)
-    for x_n in x:
-        sum_temp = []
-        for n in range(-N//2,N//2):
-            sum_temp.append( series_coeff[n+N//2]*np.exp(1j*n*x_n) )
-        f_fourier_series.append(np.sum(sum_temp))
-    return f_fourier_series
-
-def get_DFT_coeff(g, N):
-    g_tilde = abs(FFT(g)/N)
-    n = np.linspace(-N//2, N//2+1, N+1)
-    g_tilde_shift = FFTshift(g_tilde)
-    g_tilde_shift = np.append(g_tilde_shift, 0)
-    return n, g_tilde_shift
-
-def RK4_2d(f, y0, N, dt, t1):
-    t0 = 0
-    Nt = (t1 - t0)/dt + 1
-    
-    vt = np.zeros(Nt)
-    vy = np.array([np.zeros((N, N)) for i in range(Nt)])
-    vt[0] = t = t0
-    vy[0] = y = y0
-
-    for i in range(1, Nt):
-        k1 = dt * f(y)
-        k2 = dt * f(y + 0.5*k1)
-        k3 = dt * f(y + 0.5*k2)
-        k4 = dt * f(y + k3)
-        vt[i] = t = t0 + i * dt
-        vy[i] = y = y + (k1 + 2*k2 + 2*k3 + k4) / 6
-    return vt, vy
-
-def stability_monitor(x):
-    dt_max = np.max([1,2])
-    return dt_max
-
 if __name__ == '__main__':
-    # x = np.random.random(2**10)
-    # print(np.allclose(IFFT(x), np.fft.ifft(x)))
+    import seaborn as sns 
+    N = 256
+    x = np.random.randn(N,N)
+    print(np.allclose(FFT2(x), np.fft.fft2(x)))
 
-    x = np.random.randn(16,16)
-    # print(np.allclose(IFFT2(x), np.fft.ifft2(x)))
-    # U = np.random.randn(8,8)
-    # W = np.random.randn(8,8)
-    # UW = convolution_spectral(U,W)
-    # print(UW.shape)
-    # VW = convolution_spectral(V,W)
+    x_hann = de_non_periodicity(x)
+    X_hann = np.fft.fft2(x_hann)
+    X_ori = np.fft.fft2(x)
 
-    x = de_non_periodicity(x)
-    print(x)
-
-    t = np.arange(16)
+    plt.figure()
+    ax = sns.heatmap(X_hann.real, cmap="YlGnBu") 
+    plt.figure()
+    ax = sns.heatmap(X_ori.real, cmap="YlGnBu") 
+    plt.show()
 
 

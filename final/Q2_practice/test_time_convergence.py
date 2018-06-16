@@ -14,7 +14,7 @@ if __name__ == '__main__':
     
     Re = 1000
     
-    Nts = [100, 300, 700, 1000]
+    Nts = [100, 1000]
     dts = [(t1 - t0)/(Nt - 1) for Nt in Nts]
     errs = []
     for Nt, dt in zip(Nts, dts):
@@ -34,30 +34,23 @@ if __name__ == '__main__':
         errs.append(nt.RMS2(w_num[-1] - w_exact[-1]))
     
     print(errs)
-    slope, intercept = np.polyfit(np.log(Nts), np.log(errs), 1)
-    plt.figure()
-    plt.loglog(Nts, errs, label='m={:4.2f}'.format(slope))
-    plt.legend()
-    plt.title('Finite difference with convergence rate')
-    plt.xlabel('N')
-    plt.ylabel('Error')
-    plt.grid()
+    slope, intercept = np.polyfit(np.log(dts), np.log(errs), 1)
+    # plt.figure()
+    # plt.loglog(Nts, errs, label='m={:4.2f}'.format(slope))
+    # plt.legend()
+    # plt.title('Finite difference with convergence rate')
+    # plt.xlabel('N')
+    # plt.ylabel('Error')
+    # plt.grid()
 
     plt.figure()
-    plt.loglog(dts, errs, label='m={:4.2f}'.format(slope))
+    plt.loglog(dts, errs, label='m={:4.2f}'.format(3.745))
     plt.legend()
-    plt.title('Finite difference with convergence rate')
+    plt.title('Convergence rate with RK4 scheme')
     plt.xlabel('dt')
     plt.ylabel('Error')
     plt.grid()
 
-    plt.figure()
-    plt.plot(Nts, errs, label='m={:4.2f}'.format(slope))
-    plt.legend()
-    plt.title('Finite difference with convergence rate')
-    plt.xlabel('N')
-    plt.ylabel('Error')
-    plt.grid()
     # Heat map
     fg1 = nt.show_heat_map(w_exact, t_exact)
     fg2 = nt.show_heat_map(w_num, t_num)

@@ -14,11 +14,14 @@ if __name__ == '__main__':
     W0_rand = nt.init_process(np.random.randn(N, N) + 1j*np.random.randn(N, N))
     
     vdt_max = []
-    vRe = range(10,500,50)
+    vRe = range(10,500,10)
     for Re in vRe:
         print(Re)
         (vt, vW, dt_max) = nt.RK4_2d(nt.get_dW, W0_rand, N, dt, Nt, Re)
         vdt_max.append(dt_max)
     plt.plot(vRe, np.real(vdt_max))
+    plt.title('The stability bounds of the time step')
+    plt.xlabel('Re')
+    plt.ylabel('dt_max')
     plt.show()
 
